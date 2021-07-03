@@ -95,3 +95,4 @@ describe('SignUp Controller', () => {
     expect(httResponse.body).toEqual(new InvalidParamError('email'))
   })
 })
+
