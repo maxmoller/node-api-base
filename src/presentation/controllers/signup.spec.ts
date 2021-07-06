@@ -35,6 +35,7 @@ const makeSut = (): SutTypes => {
 }
 
 describe('SignUp Controller', () => {
+
   test('Should return 400 if no name is provider', () => {
     const { sut } = makeSut()
     const httpRequest = {
@@ -122,8 +123,7 @@ describe('SignUp Controller', () => {
     expect(isvalidSpy).toHaveBeenCalledWith('any_email@mail.com')
   })
 
-
-  test('Should return 500 if as EmailValidator throws', () => {
+  test('Should return 500 if EmailValidator throws', () => {
     const emailValidatorStub = makeEmailValidatorWhithError()
     const sut = new SignUpController(emailValidatorStub)
     const httpRequest = {
@@ -136,9 +136,8 @@ describe('SignUp Controller', () => {
     }
     const httResponse = sut.handle(httpRequest)
     expect(httResponse.statusCode).toBe(500)
-    expect(httResponse.body).toEqual(new ServerError)
+    expect(httResponse.body).toEqual(new ServerError())
   })
-
 
 })
 
