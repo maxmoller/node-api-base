@@ -121,11 +121,11 @@ describe('SignUp Controller', () => {
     expect(httResponse).toEqual(badRequest(new InvalidParamError('passwordConfirmation')))
   })
 
-  test('Should return 400 if as invalid is provider', async () => {
+  test('Should return 400 if as invalid email is provider', async () => {
     const { sut, emailValidatorStub } = makeSut()
     jest.spyOn(emailValidatorStub, 'isvalid').mockReturnValueOnce(false)
     const httResponse = await sut.handle(makeFakeRequest())
-    expect(httResponse.body).toEqual(badRequest(new InvalidParamError('email')))
+    expect(httResponse).toEqual(badRequest(new InvalidParamError('email')))
   })
 
   test('Should call EmailValidator with correct email', async () => {
@@ -142,7 +142,7 @@ describe('SignUp Controller', () => {
       throw new Error()
     })
     const httResponse = await sut.handle(makeFakeRequest())
-    expect(httResponse.body).toEqual(serverError( new ServerError(null)))
+    expect(httResponse).toEqual(serverError( new ServerError(null)))
   })
 
   test('Should call AddAccount with correct values', async () => {
@@ -162,7 +162,7 @@ describe('SignUp Controller', () => {
       return new Promise((resolve, reject) => reject(new Error()))
     })
     const httResponse = await sut.handle(makeFakeRequest() )
-    expect(httResponse.body).toEqual(serverError( new ServerError(null)))
+    expect(httResponse).toEqual(serverError( new ServerError(null)))
   })
 
   test('Should return 200 if valed data is provider', async () => {
