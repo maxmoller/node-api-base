@@ -117,7 +117,7 @@ describe('Login Controller', () => {
         const { sut } = makeSut()
         const httResponse = await sut.handle(makeFakeRequest())
         expect(httResponse).toEqual(ok({
-            accessToken: 'any_accessToken'
+            accessToken: 'any_token'
         }))
     })
 })
