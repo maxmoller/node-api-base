@@ -1,6 +1,6 @@
 import { SignUpController } from './signup'
 import { MissingParamError, InvalidParamError, ServerError} from '../../erros'
-import { AddAccount, AddAccountModel,AccountModel, EmailValidator, HttpRequest } from './signup-protocols'
+import { AddAccount, AddAccountModel,AccountModel, EmailValidator, HttpRequest, Validation } from './signup-protocols'
 import { ok, serverError, badRequest } from '../../helpers/http-helper'
 
 const makeEmailValidator = (): EmailValidator => {
@@ -21,10 +21,20 @@ const makeAddAccount = (): AddAccount => {
   return new AddAccountStub()
 }
 
+const makeValidation = (): Validation => {
+  class ValidationStub implements Validation {
+    validate (input: any): Error {
+      return null
+    }
+  }
+  return new ValidationStub()
+}
+
 interface SutTypes {
   sut: SignUpController
   emailValidatorStub: EmailValidator
   addAccountStub: AddAccount
+  validationStub: Validation
 }
 const makeFakeAccount = (): AccountModel => ({
   id: 'valid_id',
@@ -45,11 +55,13 @@ const makeFakeRequest = (): HttpRequest => ({
 const makeSut = (): SutTypes => {
   const emailValidatorStub = makeEmailValidator()
   const addAccountStub = makeAddAccount()
-  const sut = new SignUpController(emailValidatorStub, addAccountStub)
+  const validationStub = makeValidation()
+  const sut = new SignUpController(emailValidatorStub, addAccountStub, validationStub)
   return {
     sut,
     emailValidatorStub,
-    addAccountStub
+    addAccountStub,
+    validationStub
   }
 }
 
@@ -169,5 +181,13 @@ describe('SignUp Controller', () => {
     const { sut } = makeSut()
     const httResponse = await sut.handle(makeFakeRequest())
     expect(httResponse).toEqual(ok(makeFakeAccount()))
+  })
+
+  test('Should call Validation with correct values', async () => {
+    const { sut, validationStub } = makeSut()
+    const addSpy = jest.spyOn(validationStub, 'validate')
+    const httRequest = makeFakeRequest()
+    await sut.handle(httRequest)
+    expect(addSpy).toHaveBeenCalledWith(httRequest.body)
   })
 })
