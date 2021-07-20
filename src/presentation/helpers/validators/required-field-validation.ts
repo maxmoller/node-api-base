@@ -1,16 +1,16 @@
 import { MissingParamError } from '../../erros';
 import { Validation } from './validation'
 
-export class RequiredFiledValidation implements Validation {
-    private readonly fildName: string;
+export class RequiredFieldValidation implements Validation {
+    private readonly fieldName: string;
     
-    constructor (fildName: string) {
-        this.fildName = fildName
+    constructor (fieldName: string) {
+        this.fieldName = fieldName
     }
 
     validate (input: any): Error {
-        if (!input[this.fildName]) {
-            return new MissingParamError(this.fildName)
+        if (!input[this.fieldName]) {
+            return new MissingParamError(this.fieldName)
         }
     }
 }
