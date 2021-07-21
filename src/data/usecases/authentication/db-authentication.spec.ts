@@ -1,7 +1,9 @@
 import { AccountModel } from "../../../domain/models/account";
 import { AuthenticationModel } from "../../../domain/usecases/authentication";
 import { HashComparer } from "../../protocols/cryptografy/hash-compare";
+import { TokenGenerator } from "../../protocols/cryptografy/token-generator";
 import { LoadAccountByEmailRepository } from "../../protocols/db/load-account-by-email-repository";
+import { UpdateAccessTokenRepository } from "../../protocols/db/update-access-token-repository";
 import { DbAuthentication } from "./db-authentication";
 
 const makeFakeAccount = (): AccountModel => ({
@@ -25,6 +27,15 @@ const makeLoadAccountByEmailRepository = (): LoadAccountByEmailRepository => {
   return new LoadAccountByEmailRepositoryStub()
 }
 
+const makeTokenGenerator = (): TokenGenerator => {
+  class TokenGeneratorStub implements TokenGenerator {
+    async generate(id: string): Promise<string> {
+      return new Promise(resolve => resolve('any_token'))
+    }
+  }
+  return new TokenGeneratorStub()
+}
+
 const makehashComparer = (): HashComparer => {
   class HashComparerStub implements HashComparer {
     async compare(value: string, hash: string): Promise<boolean> {
@@ -34,20 +45,35 @@ const makehashComparer = (): HashComparer => {
   return new HashComparerStub()
 }
 
+const makeUpdateAccessTokenRepository = (): UpdateAccessTokenRepository => {
+  class UpdateAccessTokenRepositoryStub implements UpdateAccessTokenRepository {
+    async update(value: string, token: string): Promise<void> {
+      return new Promise(resolve => resolve())
+    }
+  }
+  return new UpdateAccessTokenRepositoryStub()
+}
+
 interface SutTypes {
   sut: DbAuthentication,
   loadAccountByEmailRepositoryStub: LoadAccountByEmailRepository,
-  hashCompareStub: HashComparer
+  hashCompareStub: HashComparer,
+  tokenGeneratorStub: TokenGenerator,
+  updateAccessTokenRepositoryStub: UpdateAccessTokenRepository
 }
 
 const makeSut = (): SutTypes => {
   const loadAccountByEmailRepositoryStub = makeLoadAccountByEmailRepository()
   const hashCompareStub = makehashComparer()
-  const sut = new DbAuthentication(loadAccountByEmailRepositoryStub, hashCompareStub);
+  const tokenGeneratorStub = makeTokenGenerator()
+  const updateAccessTokenRepositoryStub = makeUpdateAccessTokenRepository()
+  const sut = new DbAuthentication(loadAccountByEmailRepositoryStub, hashCompareStub, tokenGeneratorStub, updateAccessTokenRepositoryStub);
   return {
     sut,
     loadAccountByEmailRepositoryStub,
-    hashCompareStub
+    hashCompareStub,
+    tokenGeneratorStub,
+    updateAccessTokenRepositoryStub
   }
 }
 
@@ -92,5 +118,32 @@ describe('DbAuthentication UseCase', () => {
     jest.spyOn(hashCompareStub, 'compare').mockReturnValueOnce(new Promise(resolve => resolve(false)))
     const accesToken = await sut.auth(makeFakeAuthentication())
     expect(accesToken).toBeNull()
+  })
+
+  test('Should call TokenGenerator with correct id', async () => {
+    const { sut, tokenGeneratorStub } = makeSut()
+    const generateSpy = jest.spyOn(tokenGeneratorStub, 'generate')
+    await sut.auth(makeFakeAuthentication())
+    expect(generateSpy).toHaveBeenCalledWith('any_id')
+  })
+
+  test('Should throw if TokenGenerator throws', async () => {
+    const { sut, tokenGeneratorStub } = makeSut()
+    jest.spyOn(tokenGeneratorStub, 'generate').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())))
+    const promise = sut.auth(makeFakeAuthentication())
+    await expect(promise).rejects.toThrow()
+  })
+
+  test('Should call TokenGenerator with correct id', async () => {
+    const { sut } = makeSut()
+    const acesToken = await sut.auth(makeFakeAuthentication())
+    expect(acesToken).toHaveBeenCalledWith('any_token')
+  })
+
+  test('Should call UpdateAccesTokenRepository with correct values', async () => {
+    const { sut, updateAccessTokenRepositoryStub } = makeSut()
+    const updateSpy = jest.spyOn(updateAccessTokenRepositoryStub, 'update')
+    await sut.auth(makeFakeAuthentication())
+    expect(updateSpy).toHaveBeenCalledWith('any_id', 'any_token')
   })
 })
