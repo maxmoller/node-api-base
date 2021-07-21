@@ -1,11 +1,11 @@
 import { SignUpController } from './signup'
-import { MissingParamError, ServerError} from '../../erros'
-import { AddAccount, AddAccountModel,AccountModel, HttpRequest, Validation } from './signup-protocols'
+import { MissingParamError, ServerError } from '../../erros'
+import { AddAccount, AddAccountModel, AccountModel, HttpRequest, Validation } from './signup-protocols'
 import { ok, serverError, badRequest } from '../../helpers/http-helper'
 
 const makeAddAccount = (): AddAccount => {
   class AddAccountStub implements AddAccount {
-    async add (account: AddAccountModel): Promise<AccountModel> {
+    async add(account: AddAccountModel): Promise<AccountModel> {
       return new Promise(resolve => resolve(makeFakeAccount()))
     }
   }
@@ -14,7 +14,7 @@ const makeAddAccount = (): AddAccount => {
 
 const makeValidation = (): Validation => {
   class ValidationStub implements Validation {
-    validate (input: any): Error {
+    validate(input: any): Error {
       return null
     }
   }
@@ -70,8 +70,8 @@ describe('SignUp Controller', () => {
     jest.spyOn(addAccountStub, 'add').mockImplementationOnce(() => {
       return new Promise((resolve, reject) => reject(new Error()))
     })
-    const httResponse = await sut.handle(makeFakeRequest() )
-    expect(httResponse).toEqual(serverError( new ServerError(null)))
+    const httResponse = await sut.handle(makeFakeRequest())
+    expect(httResponse).toEqual(serverError(new ServerError(null)))
   })
 
   test('Should return 200 if valed data is provider', async () => {
@@ -88,7 +88,7 @@ describe('SignUp Controller', () => {
     expect(addSpy).toHaveBeenCalledWith(httRequest.body)
   })
 
-  test('Should return 200 if valed validation returns an error', async () => {
+  test('Should return 400 if valed validation returns an error', async () => {
     const { sut, validationStub } = makeSut()
     jest.spyOn(validationStub, 'validate').mockReturnValueOnce(new MissingParamError('any_field'))
     const httResponse = await sut.handle(makeFakeRequest())
