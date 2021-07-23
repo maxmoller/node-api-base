@@ -4,13 +4,13 @@ import { badRequest, ok, serverError, unauthorized } from '../../helpers/http/ht
 export class LoginController implements Controller {
   constructor (private readonly authentication: Authentication, private readonly validation: Validation) {}
 
-  async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
+  async handle(request: HttpRequest): Promise<HttpResponse> {
     try {
-      const error = this.validation.validate(httpRequest)
+      const error = this.validation.validate(request.body)
       if (error) {
         return badRequest(error)
       }
-      const { email, password } = httpRequest.body
+      const { email, password } = request.body
       const accessToken = await this.authentication.auth({
         email, 
         password
