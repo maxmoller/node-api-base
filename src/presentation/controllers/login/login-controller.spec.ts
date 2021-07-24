@@ -83,7 +83,7 @@ describe('Login Controller', () => {
     const validateSpy = jest.spyOn(validationStub, 'validate')
     const httRequest = makeFakeRequest()
     await sut.handle(httRequest)
-    expect(validateSpy).toHaveBeenCalledWith(httRequest)
+    expect(validateSpy).toHaveBeenCalledWith(httRequest.body)
   })
 
   test('Should return 400 if valed validation returns an error', async () => {
